@@ -9,5 +9,5 @@
 		"proc_script":"processor.bat",
 		"gui_window_width": 800,
 		"timeout_minutes": 1440,
-        "version":"1.0.0"
+        "version":"1.0.1"
 }
