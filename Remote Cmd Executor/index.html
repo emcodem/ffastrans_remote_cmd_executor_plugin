@@ -131,7 +131,9 @@ function ffas_keypress_enter(){
 
 	<!-- <div style="display:unset"><input style="width:380px" name="input" id="ffastrans_remote_node_path" placeholder="" value="" ></input></div> -->
 	<!-- <input name="open_folderbrowser" type="submit" value="Reveal ffastrans_remote_node" data-parent="ffastrans_remote_node_path"/> -->
-
+	<div style="display:none"><!-- System information inputs -->
+		<input style="width:750px;" name="input"  id="s_ffastrans_dir" value="%s_ffastrans_dir%" ></input>
+	</div>
    	<span style="width:120px;display:inline-block" >Target Hostnames:</span><br/>
 	<input style="width:750px;" name="input" placeholder="hostname1,hostname2" id="hostnames" value="" ></input><input width="2px" type="submit" value="<" name="open_vars" data-parent="hostnames"/><br/>
 	<div style="height:5px;visibility:hidden;"></div>
@@ -165,5 +167,4 @@ function ffas_keypress_enter(){
 	<input style="width:250px" id="stdout" name="output" oninput="check_valid_variable_name(this)"></input><input width="2px" type="submit" value="<" name="open_vars" data-parent="stdout"/><br/>
 	<span style="width:220px;display:inline-block" >Save Output in Variable (stderr): </span><br/>
 	<input style="width:250px" id="stderr" name="output" oninput="check_valid_variable_name(this)"></input><input width="2px" type="submit" value="<" name="open_vars" data-parent="stderr"/>	
-	
 </body>

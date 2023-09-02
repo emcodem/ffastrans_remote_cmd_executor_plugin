@@ -1,3 +1,5 @@
+const logfactory = require("./common/logger")
+const path = require("path")
 const express = require('express');
 const bodyParser = require('body-parser');
 const { spawn } = require('child_process');
@@ -6,7 +8,6 @@ const app = express();
 
 let listen_port = 3000;
 let m_queues = {"default":{}};
-let m_queue_concurrency = {"default":1}
 
 //UNHANDLED EXCEPTION
 process.on('uncaughtException', function(err) {
@@ -24,9 +25,18 @@ process.on('unhandledRejection', (reason, promise) => {
   }
 })
 
+//fire up logger, overrides console log
+global.approot  = path.dirname(process.execPath);
+var logger = logfactory.getLogger("main");
+console.log = (...args) => logger.info.call(logger, ...args);
+console.info = (...args) => logger.info.call(logger, ...args);
+console.warn = (...args) => logger.warn.call(logger, ...args);
+console.error = (...args) => logger.error.call(logger, ...args);
+console.debug = (...args) => logger.debug.call(logger, ...args);
 
-//ROUTES
-app.use('/', function(req, res, next) {
+// HTTP METHODS
+
+app.use('/', function(req, res, next) {//add content-type in order to trick bodyparser
   var contype = req.headers['content-type'];
   //support user did not provide content-type
   req.headers['content-type'] = "application/json";
@@ -40,14 +50,18 @@ app.listen(listen_port, () => {
   console.log('Server is running on port ' + listen_port);
 });
 
-processQueues(); //keeps process running forever
+processQueues(); //keeps this process running forever
 
-// HTTP METHODS
 
-app.get('/', (req, res) => {
+
+app.get('/status', (req, res) => {
   // let jobg_id = req.query.jobg_id;
-  // let queue_id = 
-
+  // let queue_name = 
+  if (!req.query.job_id){
+	  res.json(m_queues)
+	  return;
+  }
+	
   var found_job = false;
   Object.keys(m_queues).forEach(qid => {
     var queue = m_queues[qid];
@@ -68,13 +82,39 @@ app.get('/', (req, res) => {
   }
 })
 
+app.post('/find', (req, res) => { 
+  //param: json obj with some key value filed of job object e.g. {end: 0}
+  //returns array of jobs
+  let a_jobs = findJobsByObject(req.body);
+  return res.json(a_jobs);
+})
+
+app.get('/kill', (req, res) => {
+  let job = findJobById(req.query.job_id);
+  try{
+    job.exit_code = -1;
+    job.end = new Date().toISOString();
+    job.is_running = false;
+    job.stderr.push("Cancelled at " + job.end);
+    job.spawn.kill('SIGINT');
+  }catch(ex){
+    return res.status(400).send({
+      message: 'error killing job,' + ex
+   });
+  }
+  return res.status(200).send({
+    message: 'job_id [' + req.query.job_id + "] killed"
+ });
+})
+
 // POST endpoint for executing shell commands
-app.post('/execute', (req, res) => {
-  //req json contains command, queue_id and concurrent param
-  //if there are already concurrent jobs running in queue_id, command is deferred.
+app.post('/start', async (req, res) => {
+  //req json contains command, queue_name and concurrent param
+  //if there are already concurrent jobs running in queue_name, command is deferred.
   const command = req.body.command;
 
-  console.log("new request:" ,req.body);
+ 
+  console.log("new start request:" ,req.body);
   // execute shell command
     
     var id = new Date().toISOString();
@@ -83,37 +123,29 @@ app.post('/execute', (req, res) => {
       discover:req.protocol + "://" + req.hostname + ":" + listen_port + "/?job_id=" + id,
       start: false,
       end: false,
-      create: new Date().toISOString(),
       exit_code:false,
       is_running: false,
       command: command,
+      queue_name : req.body.queue_name,
+      created: req.body.created,
       spawn:false,
       stdout:[],
       stderr:[],
     };
-    
+
     //add job to queue
-    if ("queue_id" in req.body){
-      if (! (req.body.queue_id in m_queues)){
-		console.log("Creating new queue :" + req.body.queue_id)
-        m_queues[req.body.queue_id] = {}
-        m_queue_concurrency[req.body.queue_id] = 5;
+    if ("queue_name" in req.body){
+      if (! (req.body.queue_name in m_queues)){
+		    console.log("Creating new queue :" + req.body.queue_name)
+        m_queues[req.body.queue_name] = {}
+
       }
-      m_queues[req.body.queue_id][id] = queue_item;
+      m_queues[req.body.queue_name][id] = queue_item;
     }
     else{
       m_queues["default"][id] = queue_item;
     }
 
-    //update queue concurrency of queue if needed
-    if("concurrency" in req.body){
-      try{
-        m_queue_concurrency[req.body.queue_id] = parseInt(req.body.concurrency);
-		console.error("Reset queue concurrency of q:" +req.body.queue_id + " to:" +req.body.concurrency)
-      }catch(ex){
-		  console.error("concurrency could not be parsed from param 'concurrency'",ex)
-	  }
-    }
     res.json(queue_item);
 });
 
@@ -123,7 +155,6 @@ app.post('/execute', (req, res) => {
 async function processQueues(){
 
   const max_job_age_ms = 60 * 60 * 24 * 1000; //1 day
-
   while (true){
     await sleep(1000);
     try{
@@ -133,12 +164,11 @@ async function processQueues(){
           //foreach job in queue
           Object.keys(queue).forEach(jid => {
               let job = queue[jid];
-              //start job if needed
-			  if (job.end)
-				return
-			  
-			  //TODO: print pending info periodically? console.log("job pending, currently running: ",get_running_count(queue),"concurrency setting:",m_queue_concurrency[qid])
-              if (!job.start && get_running_count(queue) < m_queue_concurrency[qid]){
+              //start job
+              if (job.end)
+                return
+
+              if (!job.start){ // QUEUE is now done by ffastrans processor.// && get_running_count(queue) < m_queue_concurrency[qid]
                   try{
 					console.log("starting job",job.command)
                     start_job(job);
@@ -146,7 +176,7 @@ async function processQueues(){
                     job.exit_code = -1;
                     job.end = new Date().toISOString();
                     job.is_running = false;
-                    job.stderr = ex.stack;
+                    job.stderr.push(ex.stack);
                   }
               }
               //deletes old jobs
@@ -164,18 +194,26 @@ async function processQueues(){
   }
 }
 
+
 function start_job(job){
     //spawns a process and updates job spawn
     
     let parsed_args = parseArgsStringToArgv(job.command);
     let processname = parsed_args.shift(); //first argument must be a process name to spawn, could be cmd on windows or ffmpeg or any other process
-    let spawned = spawn(processname, parsed_args);
+    console.log("spawning job",job.command,"args:",parsed_args)
+	let spawned;
+	try { 
+			spawned = spawn(processname, parsed_args);
+		}catch(ex){
+			console.error("Fatal error starting job with arguments",parsed_args,"Exception",ex);
+		}
+	
     job.start = new Date().toISOString();
     job.spawn = spawned;
 
     spawned.stdout.on('data', (data) => {
       job.stdout.push(data.toString());
-      //console.log(`stdout: ${data}`);
+      //console.log(`${data}`);
     });
 
     spawned.stderr.on('data', (data) => {
@@ -212,3 +250,40 @@ function get_running_count(queue){
   })
   return cnt;
 }
+
+function findJobById(job_id){
+  var found_job = false;
+  Object.keys(m_queues).forEach(qid => {
+    var queue = m_queues[qid];
+    Object.keys(queue).forEach(jid => {
+        if (jid == job_id)
+          found_job = queue[jid];
+    })
+  })
+  return found_job;
+}
+
+function findJobsByObject(compare_obj){
+//checks if all keys in compare_obj match any job and returns it
+  var found_jobs = [];
+  var found_job = false;
+  Object.keys(m_queues).forEach(qid => {
+    var queue = m_queues[qid];
+    Object.keys(queue).forEach(jid => {
+      var job = queue[jid];
+        
+      var _matchcnt = 0;
+      Object.keys(compare_obj).forEach(_k=>{
+        if (job[_k] == compare_obj[_k]){
+          _matchcnt++;
+        }
+      })
+
+       if (_matchcnt == Object.keys(compare_obj).length)
+          found_jobs.push(job);
+    })
+  })
+
+  return found_jobs;
+}
+

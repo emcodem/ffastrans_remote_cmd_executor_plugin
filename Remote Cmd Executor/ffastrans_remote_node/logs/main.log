@@ -1,0 +1,57 @@
+2023-09-02 01:06:20: info: [main]: ------------------------- log main startup -------------------------
+2023-09-02 01:06:20: info: [main]: Server is running on port 3000
+2023-09-02 01:12:54: info: [main]: ------------------------- log main startup -------------------------
+2023-09-02 01:12:54: info: [main]: Server is running on port 3000
+2023-09-02 01:14:27: info: [main]: ------------------------- log main startup -------------------------
+2023-09-02 01:14:27: info: [main]: Server is running on port 3000
+2023-09-02 01:20:40: info: [main]: ------------------------- log main startup -------------------------
+2023-09-02 01:20:40: info: [main]: Server is running on port 3000
+2023-09-02 01:21:01: info: [main]: ------------------------- log main startup -------------------------
+2023-09-02 01:21:01: info: [main]: Server is running on port 3000
+2023-09-02 01:21:19: info: [main]: ------------------------- log main startup -------------------------
+2023-09-02 01:21:19: info: [main]: Server is running on port 3000
+2023-09-02 01:27:33: info: [main]: ------------------------- log main startup -------------------------
+2023-09-02 01:27:33: info: [main]: Server is running on port 3000
+2023-09-02 01:41:48: error: [main]: SyntaxError: Unexpected token c in JSON at position 7
+    at JSON.parse (<anonymous>)
+    at parse (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\body-parser\lib\types\json.js:89:19)
+    at C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:203:9)
+    at invokeCallback (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:231:16)
+    at done (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:220:7)
+    at IncomingMessage.onEnd (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:280:7)
+    at IncomingMessage.emit (node:events:537:28)
+    at endReadableNT (node:internal/streams/readable:1359:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+2023-09-02 01:42:06: error: [main]: SyntaxError: Unexpected token c in JSON at position 7
+    at JSON.parse (<anonymous>)
+    at parse (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\body-parser\lib\types\json.js:89:19)
+    at C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:203:9)
+    at invokeCallback (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:231:16)
+    at done (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:220:7)
+    at IncomingMessage.onEnd (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:280:7)
+    at IncomingMessage.emit (node:events:537:28)
+    at endReadableNT (node:internal/streams/readable:1359:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+2023-09-02 01:42:19: error: [main]: SyntaxError: Unexpected token c in JSON at position 7
+    at JSON.parse (<anonymous>)
+    at parse (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\body-parser\lib\types\json.js:89:19)
+    at C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:203:9)
+    at invokeCallback (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:231:16)
+    at done (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:220:7)
+    at IncomingMessage.onEnd (C:\snapshot\ffastrans_remote_node\node_modules\express\node_modules\raw-body\index.js:280:7)
+    at IncomingMessage.emit (node:events:537:28)
+    at endReadableNT (node:internal/streams/readable:1359:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+2023-09-02 01:42:59: info: [main]: new start request: {
+  command: [32m'cmd'[39m,
+  concurrency: [32m'max_concurrent || 5'[39m,
+  queue_name: [32m'queue_name || default'[39m,
+  created: [32m'date_created'[39m
+}
+2023-09-02 01:42:59: info: [main]: Creating new queue :queue_name || default
+2023-09-02 01:43:00: info: [main]: starting job cmd
+2023-09-02 01:43:00: info: [main]: spawning job cmd args: []
+2023-09-02 01:45:22: info: [main]: job process close cmd
